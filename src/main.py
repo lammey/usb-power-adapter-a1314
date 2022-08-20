@@ -22,6 +22,7 @@ CORE_LENGTH=10
 CORE_RADIUS=7
 THREAD_RADIUS=7.5
 RIM_RADIUS=8
+THREAD_THICKNESS=1.35
 
 coreBuilder = ml.MeshBuilder('core')
 threadBuilder = ml.MeshBuilder('thread')
@@ -30,8 +31,8 @@ ml.tools.vertCircle(builder=coreBuilder, centre=ml.Vec3((0,0,CORE_LENGTH)), radi
 ml.tools.vertCircle(builder=coreBuilder, centre=ml.Vec3((0,0,-1)), radius=CORE_RADIUS, vertexCount=SIDES, group='core_bottom')
 ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,0)), radius=CORE_RADIUS-1, height=2, loops=2, vertexCount=SIDES, group='thread_inner_bottom')
 ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,0)), radius=THREAD_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_outer_bottom')
-ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,1)), radius=CORE_RADIUS-1, height=2, loops=2, vertexCount=SIDES, group='thread_inner_top')
-ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,1)), radius=THREAD_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_outer_top')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,THREAD_THICKNESS)), radius=CORE_RADIUS-1, height=2, loops=2, vertexCount=SIDES, group='thread_inner_top')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,THREAD_THICKNESS)), radius=THREAD_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_outer_top')
 
 # Construct faces
 
@@ -63,5 +64,9 @@ threadBuilder.build()
 boolean = coreBuilder.object.modifiers.new(type="BOOLEAN", name="booleanXD")
 boolean.object = threadBuilder.object
 boolean.operation = 'UNION'
+
+
 bpy.context.view_layer.objects.active = coreBuilder.object
-# bpy.ops.mesh.remove_doubles()
+bpy.ops.object.modifier_apply(modifier="booleanXD")
+bpy.ops.object.mode_set(mode='EDIT')
+bpy.ops.mesh.remove_doubles()

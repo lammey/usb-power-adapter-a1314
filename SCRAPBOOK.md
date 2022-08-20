@@ -27,3 +27,4 @@ bpy.ops.outliner.delete(hierarchy=True)
     - Rather than do that, easier to bisect with a plane somehow?
 - We can combine thread and core with a boolean modifier on the core I believe.
 - Then we need to run remove doubles
+    - This seems to require being in edit mode, which itself requires an active object.
