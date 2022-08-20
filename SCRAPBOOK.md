@@ -2,6 +2,7 @@
 
 - https://all3dp.com/2/blender-to-3d-printer-prepare-model/
 - https://www.sculpteo.com/en/3d-learning-hub/create-3d-file/fix-non-manifold-geometry/
+- https://blender.stackexchange.com/questions/45004/how-to-make-boolean-modifiers-with-python
 
 ```
 bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
