@@ -22,9 +22,10 @@ CORE_LENGTH=10
 CORE_RADIUS=7
 THREAD_RADIUS=7.5
 RIM_RADIUS=8
-THREAD_THICKNESS=1.35
 CUTOFF_HEIGHT = 1.9
-LOOP_HEIGHT=THREAD_THICKNESS+1.15
+THREAD_GAP=1.15
+THREAD_THICKNESS=1.35
+LOOP_HEIGHT=THREAD_THICKNESS+THREAD_GAP
 
 coreBuilder = ml.MeshBuilder('core')
 threadBuilder = ml.MeshBuilder('thread')
@@ -61,21 +62,19 @@ for i in range(SPIRAL_VERTICES-1):
 for i in range(SIDES):
     coreBuilder.addMultiGroupFace([('core_bottom', i), ('core_bottom', (i+1)%SIDES), ('core_top', (i+1)%SIDES), ('core_top', i)])
 
-# coreBuilder.build()
-# threadBuilder.build()
-# boolean = coreBuilder.object.modifiers.new(type="BOOLEAN", name="booleanXD")
-# boolean.object = threadBuilder.object
-# boolean.operation = 'UNION'
-
-
-# bpy.context.view_layer.objects.active = coreBuilder.object
-# bpy.ops.object.modifier_apply(modifier="booleanXD")
-# bpy.ops.object.mode_set(mode='EDIT')
-# bpy.ops.mesh.remove_doubles()
-
 threadBuilder.build()
 bpy.context.view_layer.objects.active = threadBuilder.object
 bpy.ops.object.editmode_toggle()
 bpy.ops.mesh.bisect(plane_co=(0, 0, THREAD_THICKNESS+CUTOFF_HEIGHT), plane_no=(0, 0, 1), use_fill=True, clear_outer=True)
 bpy.ops.mesh.select_all(action='SELECT')
 bpy.ops.mesh.bisect(plane_co=(0, 0, THREAD_THICKNESS), plane_no=(0, 0, 1), use_fill=True, clear_inner=True)
+
+coreBuilder.build()
+boolean = coreBuilder.object.modifiers.new(type="BOOLEAN", name="booleanXD")
+boolean.object = threadBuilder.object
+boolean.operation = 'UNION'
+
+bpy.context.view_layer.objects.active = coreBuilder.object
+bpy.ops.object.modifier_apply(modifier="booleanXD")
+bpy.ops.object.mode_set(mode='EDIT')
+bpy.ops.mesh.remove_doubles()
