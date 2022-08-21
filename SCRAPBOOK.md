@@ -26,5 +26,6 @@ bpy.ops.outliner.delete(hierarchy=True)
 - We need to create thread, core as separate objects so we can intersect thread with cube.
     - Rather than do that, easier to bisect with a plane somehow?
 - We can combine thread and core with a boolean modifier on the core I believe.
-- Then we need to run remove doubles
+    - This avoids the trouble of creating faces inbetween the thread loops
+- Then we need to run remove doubles, as the boolean modifier messes with the geometry
     - This seems to require being in edit mode, which itself requires an active object.
