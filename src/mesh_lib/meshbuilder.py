@@ -15,6 +15,7 @@ class MeshBuilder:
         self.resolveFaces()
         mesh = bpy.data.meshes.new(self.name+'Mesh')
         object = bpy.data.objects.new(self.name, mesh)
+        self.object=object
         object.location=(0,0,0)
         object.show_name = False
         # Link object to scene and make active

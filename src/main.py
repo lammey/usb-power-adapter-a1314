@@ -2,6 +2,7 @@
 
 import sys
 import os
+import bpy
 
 # For some reason calls to os.path.realpath(__file__) resolve to C:\main.py, so we use an env var to resolve path of mesh lib
 # Set EXTRA_PYTHON_MODULES to the parent directory of mesh_lib
@@ -21,41 +22,59 @@ CORE_LENGTH=10
 CORE_RADIUS=7
 THREAD_RADIUS=7.5
 RIM_RADIUS=8
-builder = ml.MeshBuilder('keyboard_insert')
+CUTOFF_HEIGHT = 1.9
+THREAD_GAP=1.15
+THREAD_THICKNESS=1.35
+LOOP_HEIGHT=THREAD_THICKNESS+THREAD_GAP
 
+coreBuilder = ml.MeshBuilder('core')
+threadBuilder = ml.MeshBuilder('thread')
 # Create vertices first
-ml.tools.vertCircle(builder=builder, centre=ml.Vec3((0,0,CORE_LENGTH)), radius=CORE_RADIUS, vertexCount=SIDES, group='core_top')
-ml.tools.vertCircle(builder=builder, centre=ml.Vec3((0,0,0)), radius=CORE_RADIUS, vertexCount=SIDES, group='core_bottom')
-ml.tools.vertSpiral(builder=builder, centre=ml.Vec3((0,0,0)), radius=CORE_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_inner_bottom')
-ml.tools.vertSpiral(builder=builder, centre=ml.Vec3((0,0,0)), radius=THREAD_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_outer_bottom')
-ml.tools.vertSpiral(builder=builder, centre=ml.Vec3((0,0,1)), radius=CORE_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_inner_top')
-ml.tools.vertSpiral(builder=builder, centre=ml.Vec3((0,0,1)), radius=THREAD_RADIUS, height=2, loops=2, vertexCount=SIDES, group='thread_outer_top')
+ml.tools.vertCircle(builder=coreBuilder, centre=ml.Vec3((0,0,CORE_LENGTH)), radius=CORE_RADIUS, vertexCount=SIDES, group='core_top')
+ml.tools.vertCircle(builder=coreBuilder, centre=ml.Vec3((0,0,-1)), radius=CORE_RADIUS, vertexCount=SIDES, group='core_bottom')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,0)), radius=CORE_RADIUS-1, height=LOOP_HEIGHT, loops=2, vertexCount=SIDES, group='thread_inner_bottom')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,0)), radius=THREAD_RADIUS, height=LOOP_HEIGHT, loops=2, vertexCount=SIDES, group='thread_outer_bottom')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,THREAD_THICKNESS)), radius=CORE_RADIUS-1, height=LOOP_HEIGHT, loops=2, vertexCount=SIDES, group='thread_inner_top')
+ml.tools.vertSpiral(builder=threadBuilder, centre=ml.Vec3((0,0,THREAD_THICKNESS)), radius=THREAD_RADIUS, height=LOOP_HEIGHT, loops=2, vertexCount=SIDES, group='thread_outer_top')
 
 # Construct faces
 
 # Thread ends
-builder.addMultiGroupFace([('thread_inner_bottom', 0), ('thread_outer_bottom', 0), ('thread_outer_top', 0), ('thread_inner_top', 0)])
-builder.addMultiGroupFace([('thread_inner_bottom', SPIRAL_VERTICES-1), ('thread_outer_bottom', SPIRAL_VERTICES-1), ('thread_outer_top', SPIRAL_VERTICES-1), ('thread_inner_top', SPIRAL_VERTICES-1)])
+threadBuilder.addMultiGroupFace([('thread_inner_bottom', 0), ('thread_outer_bottom', 0), ('thread_outer_top', 0), ('thread_inner_top', 0)])
+threadBuilder.addMultiGroupFace([('thread_inner_bottom', SPIRAL_VERTICES-1), ('thread_outer_bottom', SPIRAL_VERTICES-1), ('thread_outer_top', SPIRAL_VERTICES-1), ('thread_inner_top', SPIRAL_VERTICES-1)])
 
 # Cyclinder caps
-builder.addSpanningFace('core_bottom')
-builder.addSpanningFace('core_top')
+coreBuilder.addSpanningFace('core_bottom')
+coreBuilder.addSpanningFace('core_top')
 
 # Outer thread faces
 for i in range(SPIRAL_VERTICES-1):
     # Thread outer
-    builder.addMultiGroupFace([('thread_outer_bottom', i), ('thread_outer_bottom', i+1), ('thread_outer_top', i+1), ('thread_outer_top', i)])
+    threadBuilder.addMultiGroupFace([('thread_outer_bottom', i), ('thread_outer_bottom', i+1), ('thread_outer_top', i+1), ('thread_outer_top', i)])
     # Thread bottom
-    builder.addMultiGroupFace([('thread_outer_bottom', i), ('thread_outer_bottom', i+1), ('thread_inner_bottom', i+1), ('thread_inner_bottom', i)])
+    threadBuilder.addMultiGroupFace([('thread_outer_bottom', i), ('thread_outer_bottom', i+1), ('thread_inner_bottom', i+1), ('thread_inner_bottom', i)])
     # Thread inner
-    builder.addMultiGroupFace([('thread_inner_bottom', i), ('thread_inner_bottom', i+1), ('thread_inner_top', i+1), ('thread_inner_top', i)])
+    threadBuilder.addMultiGroupFace([('thread_inner_bottom', i), ('thread_inner_bottom', i+1), ('thread_inner_top', i+1), ('thread_inner_top', i)])
     # Thread top
-    builder.addMultiGroupFace([('thread_outer_top', i), ('thread_outer_top', i+1), ('thread_inner_top', i+1), ('thread_inner_top', i)])
+    threadBuilder.addMultiGroupFace([('thread_outer_top', i), ('thread_outer_top', i+1), ('thread_inner_top', i+1), ('thread_inner_top', i)])
 
-    # # Intervening faces
-    # builder.addMultiGroupFace([('thread_inner_top', i), ('thread_inner_top', i+1), ('core_top', i+1), ('core_top', i)])
-    # builder.addMultiGroupFace([('thread_inner_bottom', i), ('thread_inner_bottom', i+1), ('core_bottom', i+1), ('core_bottom', i)])
 
 for i in range(SIDES):
-    builder.addMultiGroupFace([('core_bottom', i), ('core_bottom', (i+1)%SIDES), ('core_top', (i+1)%SIDES), ('core_top', i)])
-builder.build()
+    coreBuilder.addMultiGroupFace([('core_bottom', i), ('core_bottom', (i+1)%SIDES), ('core_top', (i+1)%SIDES), ('core_top', i)])
+
+threadBuilder.build()
+bpy.context.view_layer.objects.active = threadBuilder.object
+bpy.ops.object.editmode_toggle()
+bpy.ops.mesh.bisect(plane_co=(0, 0, THREAD_THICKNESS+CUTOFF_HEIGHT), plane_no=(0, 0, 1), use_fill=True, clear_outer=True)
+bpy.ops.mesh.select_all(action='SELECT')
+bpy.ops.mesh.bisect(plane_co=(0, 0, THREAD_THICKNESS), plane_no=(0, 0, 1), use_fill=True, clear_inner=True)
+
+coreBuilder.build()
+boolean = coreBuilder.object.modifiers.new(type="BOOLEAN", name="booleanXD")
+boolean.object = threadBuilder.object
+boolean.operation = 'UNION'
+
+bpy.context.view_layer.objects.active = coreBuilder.object
+bpy.ops.object.modifier_apply(modifier="booleanXD")
+bpy.ops.object.mode_set(mode='EDIT')
+bpy.ops.mesh.remove_doubles()
