@@ -4,6 +4,8 @@
 - https://www.sculpteo.com/en/3d-learning-hub/create-3d-file/fix-non-manifold-geometry/
 - https://blender.stackexchange.com/questions/45004/how-to-make-boolean-modifiers-with-python
 - https://blender.stackexchange.com/questions/34781/the-boolean-modifier-is-not-working
+- https://www.youtube.com/watch?v=dCegskF8x34
+- https://www.youtube.com/watch?v=0DOIPCr9DW4
 
 ```
 bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
